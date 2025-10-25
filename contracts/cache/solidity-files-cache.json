@@ -275,8 +275,8 @@
       "artifacts": []
     },
     "/Users/songsu/Desktop/zama/fhe-auction/contracts/src/SimpleFHEAuction.sol": {
-      "lastModificationDate": 1761403380323,
-      "contentHash": "56ca2a54cedf0afefbb43b140b0d0727",
+      "lastModificationDate": 1761412053834,
+      "contentHash": "794f45abe7147154a2a2ee0e5b9ba4d1",
       "sourceName": "src/SimpleFHEAuction.sol",
       "solcConfig": {
         "version": "0.8.24",

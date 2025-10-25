@@ -76,7 +76,7 @@ contract SimpleFHEAuction is SepoliaConfig {
         uint256 startPrice,
         uint256 duration
     ) external returns (uint256) {
-        if (duration == 0 || duration > 30 days) revert InvalidTime();
+        if (duration == 0 || duration > 90 days) revert InvalidTime();
         if (startPrice == 0) revert InvalidPrice();
 
         uint256 auctionId = auctionCounter++;

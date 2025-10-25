@@ -4,7 +4,7 @@ const { ethers } = require("hardhat");
 async function main() {
   console.log("Creating test auctions on SimpleFHEAuction contract...\n");
 
-  const contractAddress = "0x9845302A5a101f5cC815425f99f90013BFa87B59";
+  const contractAddress = "0xe84eEe3A82f2D8a492723bBD225a4C8356bb99C9";
   const [deployer] = await ethers.getSigners();
 
   console.log("Deployer address:", deployer.address);
@@ -18,33 +18,33 @@ async function main() {
   const testAuctions = [
     {
       name: "Aave Protocol Debt Claim #1234",
-      startPrice: ethers.parseEther("20"), // 20 ETH starting price
-      duration: 3 * 24 * 60 * 60, // 3 days
+      startPrice: ethers.parseEther("0.01"), // 20 ETH starting price
+      duration: 90 * 24 * 60 * 60, // 90 days
     },
     {
       name: "CryptoPunk NFT Rights",
-      startPrice: ethers.parseEther("40"), // 40 ETH starting price
-      duration: 6 * 60 * 60, // 6 hours
+      startPrice: ethers.parseEther("0.01"), // 40 ETH starting price
+      duration: 90 * 24 * 60 * 60, // 90 days
     },
     {
       name: "Compound Liquidation Asset",
-      startPrice: ethers.parseEther("15"), // 15 ETH starting price
-      duration: 2 * 24 * 60 * 60, // 2 days
+      startPrice: ethers.parseEther("0.01"), // 15 ETH starting price
+      duration: 90 * 24 * 60 * 60, // 90 days
     },
     {
       name: "Governance Token Package",
-      startPrice: ethers.parseEther("10"), // 10 ETH starting price
-      duration: 4 * 24 * 60 * 60, // 4 days
+      startPrice: ethers.parseEther("0.01"), // 10 ETH starting price
+      duration: 90 * 24 * 60 * 60, // 90 days
     },
     {
       name: "MakerDAO Vault Debt",
-      startPrice: ethers.parseEther("30"), // 30 ETH starting price
-      duration: 5 * 60 * 60, // 5 hours
+      startPrice: ethers.parseEther("0.01"), // 30 ETH starting price
+      duration: 90 * 24 * 60 * 60, // 90 days
     },
     {
       name: "Rare NFT Collection Bundle",
-      startPrice: ethers.parseEther("60"), // 60 ETH starting price
-      duration: 3 * 24 * 60 * 60, // 3 days
+      startPrice: ethers.parseEther("0.01"), // 60 ETH starting price
+      duration: 90 * 24 * 60 * 60, // 90 days
     },
   ];
 
