@@ -1,0 +1,176 @@
+{
+  "abi": [
+    {
+      "inputs": [
+        {"internalType": "address", "name": "_tokenContract", "type": "address"},
+        {"internalType": "uint256", "name": "_tokenId", "type": "uint256"},
+        {"internalType": "uint256", "name": "_startTime", "type": "uint256"},
+        {"internalType": "uint256", "name": "_endTime", "type": "uint256"},
+        {"internalType": "bytes32", "name": "_reservePrice", "type": "bytes32"},
+        {"internalType": "bytes", "name": "_encryptedReservePrice", "type": "bytes"}
+      ],
+      "name": "createAuction",
+      "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {"internalType": "uint256", "name": "_auctionId", "type": "uint256"},
+        {"internalType": "bytes32", "name": "_encryptedBid", "type": "bytes32"},
+        {"internalType": "bytes", "name": "_inputProof", "type": "bytes"}
+      ],
+      "name": "placeBid",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [{"internalType": "uint256", "name": "_auctionId", "type": "uint256"}],
+      "name": "revealWinner",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [{"internalType": "uint256", "name": "_auctionId", "type": "uint256"}],
+      "name": "claimItem",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [{"internalType": "uint256", "name": "_auctionId", "type": "uint256"}],
+      "name": "claimRefund",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [{"internalType": "uint256", "name": "_auctionId", "type": "uint256"}],
+      "name": "getAuction",
+      "outputs": [
+        {
+          "components": [
+            {"internalType": "address", "name": "seller", "type": "address"},
+            {"internalType": "address", "name": "tokenContract", "type": "address"},
+            {"internalType": "uint256", "name": "tokenId", "type": "uint256"},
+            {"internalType": "uint256", "name": "startTime", "type": "uint256"},
+            {"internalType": "uint256", "name": "endTime", "type": "uint256"},
+            {"internalType": "address", "name": "highestBidder", "type": "address"},
+            {"internalType": "uint8", "name": "state", "type": "uint8"}
+          ],
+          "internalType": "struct Auction",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{"internalType": "uint256", "name": "_auctionId", "type": "uint256"}],
+      "name": "getDecryptedSecondPrice",
+      "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{"internalType": "uint256", "name": "_auctionId", "type": "uint256"}],
+      "name": "getSecondHighestBid",
+      "outputs": [{"internalType": "bytes32", "name": "", "type": "bytes32"}],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {"internalType": "uint256", "name": "_auctionId", "type": "uint256"},
+        {"internalType": "address", "name": "_bidder", "type": "address"}
+      ],
+      "name": "revealBid",
+      "outputs": [{"internalType": "bytes32", "name": "", "type": "bytes32"}],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [{"internalType": "uint256", "name": "_auctionId", "type": "uint256"}],
+      "name": "emergencyEndAuction",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [{"internalType": "uint256", "name": "_revealPeriod", "type": "uint256"}],
+      "name": "setRevealPeriod",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "auctionCount",
+      "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {"indexed": true, "internalType": "uint256", "name": "auctionId", "type": "uint256"},
+        {"indexed": true, "internalType": "address", "name": "seller", "type": "address"},
+        {"indexed": false, "internalType": "address", "name": "tokenContract", "type": "address"},
+        {"indexed": false, "internalType": "uint256", "name": "tokenId", "type": "uint256"},
+        {"indexed": false, "internalType": "uint256", "name": "startTime", "type": "uint256"},
+        {"indexed": false, "internalType": "uint256", "name": "endTime", "type": "uint256"}
+      ],
+      "name": "AuctionCreated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {"indexed": true, "internalType": "uint256", "name": "auctionId", "type": "uint256"},
+        {"indexed": true, "internalType": "address", "name": "bidder", "type": "address"}
+      ],
+      "name": "BidSealed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {"indexed": true, "internalType": "uint256", "name": "auctionId", "type": "uint256"},
+        {"indexed": true, "internalType": "address", "name": "winner", "type": "address"},
+        {"indexed": false, "internalType": "uint256", "name": "secondPrice", "type": "uint256"}
+      ],
+      "name": "WinnerRevealed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {"indexed": true, "internalType": "uint256", "name": "auctionId", "type": "uint256"},
+        {"indexed": false, "internalType": "uint256", "name": "secondPrice", "type": "uint256"}
+      ],
+      "name": "SecondPriceDetermined",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {"indexed": true, "internalType": "uint256", "name": "auctionId", "type": "uint256"},
+        {"indexed": false, "internalType": "uint256", "name": "timestamp", "type": "uint256"}
+      ],
+      "name": "AuctionCancelled",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {"indexed": true, "internalType": "uint256", "name": "auctionId", "type": "uint256"},
+        {"indexed": false, "internalType": "uint256", "name": "requestId", "type": "uint256"}
+      ],
+      "name": "WinnerDecryptionRequested",
+      "type": "event"
+    }
+  ]
+}
