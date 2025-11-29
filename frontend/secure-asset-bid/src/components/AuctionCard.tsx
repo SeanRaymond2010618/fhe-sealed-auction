@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, TrendingUp } from 'lucide-react';
+import { Clock, TrendingUp, Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -12,10 +12,10 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
+import { txToast } from '@/hooks/use-toast';
 import { useAuction } from '@/hooks/useAuction';
-import { Loader2 } from 'lucide-react';
 import { useAccount } from 'wagmi';
+import { toast as sonnerToast } from 'sonner';
 
 interface AuctionCardProps {
   id?: number;
@@ -32,7 +32,6 @@ const AuctionCard = ({ id, title, type, currentBid, timeLeft, status, bidders, i
   const [isOpen, setIsOpen] = useState(false);
   const [bidAmount, setBidAmount] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
   const { placeBid } = useAuction();
   const { address, isConnected } = useAccount();
   return (
@@ -121,47 +120,38 @@ const AuctionCard = ({ id, title, type, currentBid, timeLeft, status, bidders, i
               className="w-full"
               onClick={async () => {
                 if (!isConnected || !address) {
-                  toast({
-                    title: "Wallet not connected",
+                  sonnerToast.error("Wallet not connected", {
                     description: "Please connect your wallet to place a bid",
-                    variant: "destructive",
                   });
                   return;
                 }
 
                 if (!id) {
-                  toast({
-                    title: "Invalid auction",
+                  sonnerToast.error("Invalid auction", {
                     description: "Auction ID not found",
-                    variant: "destructive",
                   });
                   return;
                 }
 
                 if (!bidAmount || parseFloat(bidAmount) <= 0) {
-                  toast({
-                    title: "Invalid bid amount",
+                  sonnerToast.error("Invalid bid amount", {
                     description: "Please enter a valid bid amount",
-                    variant: "destructive",
                   });
                   return;
                 }
 
                 setIsSubmitting(true);
+                const toastId = txToast.pending("Encrypting and submitting bid...");
+
                 try {
-                  await placeBid(id - 1, bidAmount); // Convert to 0-based index
-                  toast({
-                    title: "Bid placed successfully!",
-                    description: "Your encrypted bid has been submitted",
-                  });
+                  const result = await placeBid(id - 1, bidAmount); // Convert to 0-based index
+                  txToast.dismiss(toastId);
+                  txToast.success(result.hash, "Bid placed successfully!");
                   setBidAmount('');
                   setIsOpen(false);
                 } catch (error: any) {
-                  toast({
-                    title: "Failed to place bid",
-                    description: error.message || "Please try again",
-                    variant: "destructive",
-                  });
+                  txToast.dismiss(toastId);
+                  txToast.error(error);
                 } finally {
                   setIsSubmitting(false);
                 }

@@ -41,107 +41,93 @@ const HowItWorks = () => {
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-7xl mx-auto">
-          {/* Split layout */}
-          <div className="grid lg:grid-cols-2 gap-16 items-center mb-20">
-            {/* Left - Title */}
-            <div className="space-y-6">
-              <div className="inline-block px-4 py-2 rounded-full bg-accent/10 text-accent text-sm font-medium">
-                FHE-Powered Auctions
-              </div>
-              <h2 className="text-4xl md:text-6xl font-bold leading-tight">
-                How Privacy
-                <br />
-                Auctions Work
-              </h2>
-              <p className="text-xl text-muted-foreground">
-                Fully homomorphic encryption enables secure, anonymous bidding with complete on-chain privacy
-              </p>
+          {/* Title and Description */}
+          <div className="text-center mb-12">
+            <div className="inline-block px-4 py-2 rounded-full bg-accent/10 text-accent text-sm font-medium mb-6">
+              FHE-Powered Auctions
+            </div>
+            <h2 className="text-4xl md:text-6xl font-bold leading-tight mb-4">
+              How Privacy Auctions Work
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Fully homomorphic encryption enables secure, anonymous bidding with complete on-chain privacy
+            </p>
+          </div>
 
-              {/* Demo Video */}
-              <div className="relative rounded-2xl overflow-hidden border-2 border-primary/20 shadow-2xl mt-8">
-                <video
-                  id="demo-video"
-                  className="w-full aspect-video object-cover"
-                  controls
-                  onPlay={() => setIsPlaying(true)}
-                  onPause={() => setIsPlaying(false)}
-                  onEnded={() => setIsPlaying(false)}
+          {/* Demo Video - Full Width */}
+          <div className="relative rounded-2xl overflow-hidden border-2 border-primary/20 shadow-2xl mb-16">
+            <video
+              id="demo-video"
+              className="w-full aspect-video object-contain bg-black"
+              controls
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+              onEnded={() => setIsPlaying(false)}
+            >
+              <source src="/demo.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+            {!isPlaying && (
+              <div
+                className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm cursor-pointer"
+                onClick={() => {
+                  const video = document.getElementById('demo-video') as HTMLVideoElement;
+                  if (video) {
+                    video.play();
+                    setIsPlaying(true);
+                  }
+                }}
+              >
+                <div className="text-center space-y-4 pointer-events-none">
+                  <PlayCircle className="w-24 h-24 text-white mx-auto opacity-90" />
+                  <p className="text-white font-semibold text-xl">Watch Bidding Demo</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Steps Grid */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
+            {steps.map((step, index) => {
+              const Icon = step.icon;
+              return (
+                <div
+                  key={index}
+                  className="group relative bg-card border border-border rounded-2xl p-6 hover:shadow-lg transition-smooth hover:border-primary/50"
                 >
-                  <source src="/demo.mp4" type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
-                {!isPlaying && (
-                  <div
-                    className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm cursor-pointer"
-                    onClick={() => {
-                      const video = document.getElementById('demo-video') as HTMLVideoElement;
-                      if (video) {
-                        video.play();
-                        setIsPlaying(true);
-                      }
-                    }}
-                  >
-                    <div className="text-center space-y-4 pointer-events-none">
-                      <PlayCircle className="w-20 h-20 text-white mx-auto opacity-90" />
-                      <p className="text-white font-semibold text-lg">Watch Bidding Demo</p>
+                  {/* Step number and icon */}
+                  <div className="relative mb-4">
+                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center group-hover:bg-primary/20 transition-smooth ${
+                      step.status === 'completed' ? 'bg-primary/10' : 'bg-muted'
+                    }`}>
+                      <Icon className={`w-7 h-7 ${step.status === 'completed' ? 'text-primary' : 'text-muted-foreground'}`} />
+                    </div>
+                    <div className={`absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold shadow-md ${
+                      step.status === 'completed' ? 'bg-accent text-accent-foreground' : 'bg-muted text-muted-foreground'
+                    }`}>
+                      {step.status === 'completed' ? '✓' : index + 1}
                     </div>
                   </div>
-                )}
-              </div>
-            </div>
 
-            {/* Right - Steps */}
-            <div className="space-y-6">
-              {steps.map((step, index) => {
-                const Icon = step.icon;
-                return (
-                  <div
-                    key={index}
-                    className="group relative bg-card border border-border rounded-2xl p-6 hover:shadow-lg transition-smooth hover:border-primary/50"
-                  >
-                    <div className="flex gap-6">
-                      {/* Step number and icon */}
-                      <div className="flex-shrink-0">
-                        <div className="relative">
-                          <div className={`w-16 h-16 rounded-xl flex items-center justify-center group-hover:bg-primary/20 transition-smooth ${
-                            step.status === 'completed' ? 'bg-primary/10' : 'bg-muted'
-                          }`}>
-                            <Icon className={`w-8 h-8 ${step.status === 'completed' ? 'text-primary' : 'text-muted-foreground'}`} />
-                          </div>
-                          <div className={`absolute -top-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shadow-md ${
-                            step.status === 'completed' ? 'bg-accent text-accent-foreground' : 'bg-muted text-muted-foreground'
-                          }`}>
-                            {step.status === 'completed' ? '✓' : index + 1}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-center gap-3">
-                          <h3 className="font-semibold text-xl">{step.title}</h3>
-                          {step.status === 'in-progress' && (
-                            <span className="text-xs px-2 py-1 rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 font-medium">
-                              In Progress
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-muted-foreground">{step.description}</p>
-                        <p className="text-sm text-muted-foreground/70 flex items-center gap-2">
-                          <ArrowRight className="w-4 h-4 text-accent" />
-                          {step.detail}
-                        </p>
-                      </div>
+                  {/* Content */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-semibold text-lg">{step.title}</h3>
+                      {step.status === 'in-progress' && (
+                        <span className="text-xs px-2 py-1 rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 font-medium">
+                          In Progress
+                        </span>
+                      )}
                     </div>
-
-                    {/* Connecting line */}
-                    {index < steps.length - 1 && (
-                      <div className="absolute left-[2.75rem] top-[5rem] w-0.5 h-6 bg-border" />
-                    )}
+                    <p className="text-sm text-muted-foreground">{step.description}</p>
+                    <p className="text-xs text-muted-foreground/70 flex items-start gap-2">
+                      <ArrowRight className="w-3 h-3 text-accent mt-0.5 flex-shrink-0" />
+                      <span>{step.detail}</span>
+                    </p>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
           </div>
 
           {/* Current Status & Roadmap */}
