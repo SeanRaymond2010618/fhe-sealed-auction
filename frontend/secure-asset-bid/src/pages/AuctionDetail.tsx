@@ -7,8 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
+import { txToast } from "@/hooks/use-toast";
+import { toast as sonnerToast } from "sonner";
 import { Loader2, Clock, Trophy, Lock, CheckCircle } from "lucide-react";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 const AUCTION_STATES = ["Pending", "Active", "Ended", "Settled", "Cancelled"];
 
@@ -99,8 +102,7 @@ export default function AuctionDetail() {
   const auctionId = Number(id);
   const { address } = useAccount();
   const { auction: chainAuction, isLoading } = useAuctionData(auctionId);
-  const { placeBid, revealWinner, claimItem, claimRefund } = useAuction();
-  const { toast } = useToast();
+  const { placeBid, endAuction } = useAuction();
 
   const [bidAmount, setBidAmount] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -111,20 +113,28 @@ export default function AuctionDetail() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+        <Footer />
       </div>
     );
   }
 
   if (!auction) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="p-12 text-center">
-            <p className="text-muted-foreground">Auction not found</p>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <Card>
+            <CardContent className="p-12 text-center">
+              <p className="text-muted-foreground">Auction not found</p>
+            </CardContent>
+          </Card>
+        </div>
+        <Footer />
       </div>
     );
   }
@@ -141,100 +151,56 @@ export default function AuctionDetail() {
 
   const handlePlaceBid = async () => {
     if (!bidAmount || parseFloat(bidAmount) <= 0) {
-      toast({
-        title: "Invalid bid amount",
+      sonnerToast.error("Invalid bid amount", {
         description: "Please enter a valid bid amount",
-        variant: "destructive",
       });
       return;
     }
 
     setIsSubmitting(true);
+    const toastId = txToast.pending("Encrypting and submitting bid...");
+
     try {
-      await placeBid(auctionId, bidAmount);
-      toast({
-        title: "Bid placed successfully!",
-        description: "Your encrypted bid has been submitted to the auction",
-      });
+      const result = await placeBid(auctionId, bidAmount);
+      txToast.dismiss(toastId);
+      txToast.success(result.hash, "Bid placed successfully!");
       setBidAmount("");
     } catch (error: any) {
-      toast({
-        title: "Failed to place bid",
-        description: error.message || "Please try again",
-        variant: "destructive",
-      });
+      txToast.dismiss(toastId);
+      txToast.error(error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleRevealWinner = async () => {
+  const handleEndAuction = async () => {
     setIsSubmitting(true);
-    try {
-      await revealWinner(auctionId);
-      toast({
-        title: "Winner revealed!",
-        description: "The auction winner has been determined",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Failed to reveal winner",
-        description: error.message || "Please try again",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    const toastId = txToast.pending("Ending auction...");
 
-  const handleClaimItem = async () => {
-    setIsSubmitting(true);
     try {
-      await claimItem(auctionId);
-      toast({
-        title: "Item claimed!",
-        description: "The auction item has been transferred to you",
-      });
+      const result = await endAuction(auctionId);
+      txToast.dismiss(toastId);
+      txToast.success(result.hash, "Auction ended successfully!");
     } catch (error: any) {
-      toast({
-        title: "Failed to claim item",
-        description: error.message || "Please try again",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleClaimRefund = async () => {
-    setIsSubmitting(true);
-    try {
-      await claimRefund(auctionId);
-      toast({
-        title: "Refund claimed!",
-        description: "Your deposit has been refunded",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Failed to claim refund",
-        description: error.message || "Please try again",
-        variant: "destructive",
-      });
+      txToast.dismiss(toastId);
+      txToast.error(error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-4xl font-bold mb-2">{(auction as any).title || `Auction #${auctionId}`}</h1>
-            <p className="text-muted-foreground">
-              Sealed-bid auction with FHE privacy protection
-            </p>
-          </div>
+    <div className="min-h-screen bg-background">
+      <Header />
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-4xl font-bold mb-2">{(auction as any).title || `Auction #${auctionId}`}</h1>
+              <p className="text-muted-foreground">
+                Sealed-bid auction with FHE privacy protection
+              </p>
+            </div>
           <Badge
             variant={isActive ? "default" : hasEnded ? "secondary" : "outline"}
             className="text-lg px-4 py-2"
@@ -354,21 +320,21 @@ export default function AuctionDetail() {
           </Card>
         )}
 
-        {hasEnded && !isSettled && (
+        {isActive && timeRemaining <= 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>Auction Ended</CardTitle>
-              <CardDescription>Reveal the winner to finalize the auction</CardDescription>
+              <CardTitle>Auction Time Expired</CardTitle>
+              <CardDescription>End the auction to reveal the winner</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button onClick={handleRevealWinner} disabled={isSubmitting} className="w-full">
+              <Button onClick={handleEndAuction} disabled={isSubmitting} className="w-full">
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Revealing...
+                    Ending Auction...
                   </>
                 ) : (
-                  "Reveal Winner"
+                  "End Auction & Reveal Winner"
                 )}
               </Button>
             </CardContent>
@@ -381,49 +347,18 @@ export default function AuctionDetail() {
               <CardTitle className="flex items-center gap-2 text-green-600">
                 <CheckCircle className="h-5 w-5" /> You Won!
               </CardTitle>
-              <CardDescription>Claim your auction item</CardDescription>
+              <CardDescription>Congratulations! You are the highest bidder</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button onClick={handleClaimItem} disabled={isSubmitting} className="w-full">
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Claiming...
-                  </>
-                ) : (
-                  "Claim Item"
-                )}
-              </Button>
+              <p className="text-muted-foreground">
+                The auction has ended and you are the winner.
+              </p>
             </CardContent>
           </Card>
         )}
-
-        {hasEnded && !isWinner && !isSeller && address && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Claim Refund</CardTitle>
-              <CardDescription>Get your deposit back</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button
-                onClick={handleClaimRefund}
-                disabled={isSubmitting}
-                variant="outline"
-                className="w-full"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  "Claim Refund"
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+        </div>
       </div>
+      <Footer />
     </div>
   );
 }
