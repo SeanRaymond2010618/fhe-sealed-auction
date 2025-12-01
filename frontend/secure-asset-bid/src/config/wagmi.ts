@@ -3,7 +3,7 @@ import { sepolia } from 'wagmi/chains';
 
 export const config = getDefaultConfig({
   appName: 'FHE Sealed Bid Auction',
-  projectId: 'YOUR_PROJECT_ID', // Get from https://cloud.walletconnect.com
+  projectId: '21fce48a2a4e23aca51d70a4e5849414', // WalletConnect Cloud
   chains: [sepolia],
   ssr: false,
 });

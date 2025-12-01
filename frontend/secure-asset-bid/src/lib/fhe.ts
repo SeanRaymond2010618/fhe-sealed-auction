@@ -1,156 +1,169 @@
-import { hexlify } from "ethers";
+import { bytesToHex, getAddress } from "viem";
+import type { Address } from "viem";
+import { AUCTION_CONTRACT_ADDRESS } from "@/lib/contracts/addresses";
+
+declare global {
+    interface Window {
+        RelayerSDK?: any;
+        relayerSDK?: any;
+        ethereum?: any;
+        okxwallet?: any;
+    }
+}
 
 let fheInstance: any = null;
 
-/**
- * Initialize FHE instance with proper network provider support
- * Supports both MetaMask and OKX Wallet
- */
-export async function initializeFHE(): Promise<any> {
-  if (fheInstance) {
-    return fheInstance;
-  }
+const getSDK = () => {
+    if (typeof window === "undefined") {
+        throw new Error("FHE SDK requires a browser environment");
+    }
+    const sdk = window.RelayerSDK || window.relayerSDK;
+    if (!sdk) {
+        throw new Error("Relayer SDK not loaded. Ensure the CDN script tag is present.");
+    }
+    return sdk;
+};
 
-  // Check if any Ethereum provider is available (MetaMask, OKX, etc.)
-  if (typeof window === 'undefined') {
-    throw new Error('Window object not available');
-  }
+export const initializeFHE = async (provider?: any) => {
+    if (fheInstance) return fheInstance;
+    if (typeof window === "undefined") {
+        throw new Error("FHE SDK requires a browser environment");
+    }
 
-  // Support multiple wallet providers - OKX has multiple possible access paths
-  let provider = null;
+    const ethereumProvider =
+        provider || window.ethereum || window.okxwallet?.provider || window.okxwallet;
+    if (!ethereumProvider) {
+        throw new Error("No wallet provider detected. Connect a wallet first.");
+    }
 
-  // Try OKX wallet first (multiple possible locations)
-  if ((window as any).okxwallet) {
-    provider = (window as any).okxwallet.provider || (window as any).okxwallet;
-    console.log('[FHE] Using OKX Wallet provider');
-  }
-  // Try Ethereum provider (MetaMask, injected wallets)
-  else if ((window as any).ethereum) {
-    provider = (window as any).ethereum;
-    console.log('[FHE] Using Ethereum provider (MetaMask/injected)');
-  }
-
-  if (!provider) {
-    console.error('[FHE] Available providers:', {
-      okxwallet: (window as any).okxwallet,
-      ethereum: (window as any).ethereum,
-      windowKeys: Object.keys(window).filter(k => k.toLowerCase().includes('wallet') || k.toLowerCase().includes('ethereum'))
-    });
-    throw new Error('Ethereum provider not found. Please install MetaMask, OKX Wallet or connect your wallet.');
-  }
-
-  console.log('[FHE] Provider found:', provider);
-
-  try {
-    console.log('[FHE] Loading SDK from CDN...');
-
-    // Dynamic import from Zama CDN
-    const sdk = await import('https://cdn.zama.ai/relayer-sdk-js/0.2.0/relayer-sdk-js.js' as any);
-    const { initSDK, createInstance, SepoliaConfig } = sdk as any;
-
-    console.log('[FHE] Initializing WASM...');
+    const sdk = getSDK();
+    const { initSDK, createInstance, SepoliaConfig } = sdk;
     await initSDK();
+    const config = { ...SepoliaConfig, network: ethereumProvider };
+    fheInstance = await createInstance(config);
+    return fheInstance;
+};
 
-    console.log('[FHE] Creating instance with network provider...');
-    fheInstance = await createInstance({
-      ...SepoliaConfig,
-      network: provider,
-      gatewayUrl: 'https://gateway.zama.ai'
+const getInstance = async (provider?: any) => {
+    if (fheInstance) return fheInstance;
+    return initializeFHE(provider);
+};
+
+/**
+ * Encrypt a bid amount (euint64) for sealed-bid auction
+ * @param bidAmountGwei - The bid amount in Gwei (1 ETH = 1e9 Gwei)
+ * @param userAddress - The user's wallet address
+ * @param provider - Optional ethereum provider
+ */
+export const encryptBid = async (
+    bidAmountGwei: bigint,
+    userAddress: Address,
+    provider?: any
+): Promise<{
+    handle: `0x${string}`;
+    proof: `0x${string}`;
+}> => {
+    console.log('[FHE] Encrypting bid amount (Gwei):', bidAmountGwei.toString());
+    const instance = await getInstance(provider);
+    const contractAddr = getAddress(AUCTION_CONTRACT_ADDRESS);
+    const userAddr = getAddress(userAddress);
+
+    console.log('[FHE] Creating encrypted input for:', {
+        contract: contractAddr,
+        user: userAddr,
     });
 
-    console.log('[FHE] ✅ SDK initialized successfully');
-    return fheInstance;
-  } catch (error) {
-    console.error('[FHE] ❌ Failed to initialize FHE SDK:', error);
-    fheInstance = null;
-    throw new Error(`FHE initialization failed: ${error}`);
-  }
-}
+    const input = instance.createEncryptedInput(contractAddr, userAddr);
+    input.add64(bidAmountGwei);  // euint64 for bid amount in Gwei
 
-/**
- * Encrypt a bid amount for submission to the auction contract
- * @param bidAmountGwei The bid amount in Gwei (as bigint) - 1 ETH = 1e9 Gwei
- * @param contractAddress The auction contract address
- * @param userAddress The bidder's wallet address
- * @returns Object containing encrypted handle and input proof
- */
-export async function encryptBid(
-  bidAmountGwei: bigint,
-  contractAddress: string,
-  userAddress: string
-): Promise<{ handle: string; proof: string }> {
-  try {
-    const fhe = await initializeFHE();
-
-    // Create encrypted input for the contract
-    const input = fhe.createEncryptedInput(contractAddress, userAddress);
-
-    // Add the bid amount as euint64 (in Gwei to fit in 64 bits)
-    // Max value: 2^64-1 = ~18.4 billion ETH in Gwei units
-    input.add64(bidAmountGwei);
-
-    // Encrypt and get handles + proof
+    console.log('[FHE] Encrypting input...');
     const { handles, inputProof } = await input.encrypt();
+    console.log('[FHE] Encryption complete, handles:', handles.length);
 
-    if (!handles || handles.length === 0) {
-      throw new Error("Encryption failed: No handles returned");
+    if (handles.length < 1) {
+        throw new Error('FHE SDK returned insufficient handles');
     }
 
     return {
-      handle: hexlify(handles[0]),
-      proof: hexlify(inputProof),
+        handle: bytesToHex(handles[0]) as `0x${string}`,
+        proof: bytesToHex(inputProof) as `0x${string}`,
     };
-  } catch (error) {
-    console.error("❌ Bid encryption failed:", error);
-    throw new Error(`Failed to encrypt bid: ${error}`);
-  }
-}
+};
 
 /**
- * Encrypt a reserve price for auction creation
- * @param reservePrice The reserve price in wei (as number)
- * @param contractAddress The auction contract address
- * @param userAddress The seller's wallet address
- * @returns Object containing encrypted handle and input proof
+ * Encrypt a reserve price (euint32) for auction creation
+ * @param reservePrice - The reserve price in wei
+ * @param userAddress - The seller's wallet address
+ * @param provider - Optional ethereum provider
  */
-export async function encryptReservePrice(
-  reservePrice: number,
-  contractAddress: string,
-  userAddress: string
-): Promise<{ handle: string; proof: string }> {
-  try {
-    const fhe = await initializeFHE();
+export const encryptReservePrice = async (
+    reservePrice: number,
+    userAddress: Address,
+    provider?: any
+): Promise<{
+    handle: `0x${string}`;
+    proof: `0x${string}`;
+}> => {
+    console.log('[FHE] Encrypting reserve price:', reservePrice);
+    const instance = await getInstance(provider);
+    const contractAddr = getAddress(AUCTION_CONTRACT_ADDRESS);
+    const userAddr = getAddress(userAddress);
 
-    const input = fhe.createEncryptedInput(contractAddress, userAddress);
-    input.add32(reservePrice);
+    const input = instance.createEncryptedInput(contractAddr, userAddr);
+    input.add32(reservePrice);  // euint32 for reserve price
 
     const { handles, inputProof } = await input.encrypt();
 
-    if (!handles || handles.length === 0) {
-      throw new Error("Encryption failed: No handles returned");
+    if (handles.length < 1) {
+        throw new Error('FHE SDK returned insufficient handles');
     }
 
     return {
-      handle: hexlify(handles[0]),
-      proof: hexlify(inputProof),
+        handle: bytesToHex(handles[0]) as `0x${string}`,
+        proof: bytesToHex(inputProof) as `0x${string}`,
     };
-  } catch (error) {
-    console.error("❌ Reserve price encryption failed:", error);
-    throw new Error(`Failed to encrypt reserve price: ${error}`);
-  }
-}
+};
 
 /**
- * Check if FHE SDK is available
+ * Check if FHE SDK is loaded and ready
  */
-export function isFHEAvailable(): boolean {
-  const w = window as any;
-  return typeof w.relayerSDK !== "undefined";
-}
+export const isFHEReady = (): boolean => {
+    if (typeof window === "undefined") return false;
+    return !!(window.RelayerSDK || window.relayerSDK);
+};
+
+// Alias for compatibility
+export const isFheReady = (): boolean => {
+    return fheInstance !== null;
+};
+
+export const isSDKLoaded = isFHEReady;
 
 /**
- * Get FHE instance (will initialize if not already done)
+ * Wait for FHE SDK to be loaded (with timeout)
  */
-export async function getFHEInstance(): Promise<any> {
-  return initializeFHE();
-}
+export const waitForFHE = async (timeoutMs: number = 10000): Promise<boolean> => {
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < timeoutMs) {
+        if (isFHEReady()) {
+            return true;
+        }
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    return false;
+};
+
+/**
+ * Get FHE status for debugging
+ */
+export const getFHEStatus = (): {
+    sdkLoaded: boolean;
+    instanceReady: boolean;
+} => {
+    return {
+        sdkLoaded: isFHEReady(),
+        instanceReady: fheInstance !== null,
+    };
+};
