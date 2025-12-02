@@ -3,26 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PrivacyAuction - Secure Blockchain Asset Auctions</title>
-    <meta name="description" content="Privacy-preserving auction platform for DeFi debt claims, NFTs, and digital assets. Built with zero-knowledge technology for secure, anonymous bidding." />
-    <meta name="author" content="PrivacyAuction" />
+    <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin" />
+    <meta http-equiv="Cross-Origin-Embedder-Policy" content="credentialless" />
+    <link rel="preconnect" href="https://cdn.zama.org" />
+    <title>SealedAuction - FHE Privacy-Preserving Sealed-Bid Auctions</title>
+    <meta name="description" content="Privacy-preserving sealed-bid auction platform powered by Zama's FHE. Secure, private, and transparent auctions on Ethereum." />
+    <meta name="author" content="SealedAuction" />
 
-    <meta property="og:title" content="PrivacyAuction - Secure Blockchain Asset Auctions" />
-    <meta property="og:description" content="Privacy-preserving auction platform for DeFi debt claims, NFTs, and digital assets. Built with zero-knowledge technology for secure, anonymous bidding." />
+    <meta property="og:title" content="SealedAuction - FHE Sealed-Bid Auctions" />
+    <meta property="og:description" content="Privacy-preserving sealed-bid auction platform powered by Zama's FHE. Your bid remains encrypted until the auction ends." />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
   </head>
 
   <body>
     <div id="root"></div>
-
-    <!-- Load FHE SDK from CDN before app starts -->
-    <script src="https://cdn.zama.ai/relayer-sdk-js/0.2.0/relayer-sdk-js.umd.cjs" crossorigin="anonymous"></script>
-
+    <!-- Load FHE Relayer SDK from Zama CDN -->
+    <script
+      src="https://cdn.zama.org/relayer-sdk-js/0.3.0-5/relayer-sdk-js.umd.cjs"
+      defer
+      crossorigin="anonymous"
+    ></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
